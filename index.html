@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Орос Хэлний Ухаалаг Хөзөр</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 min-h-screen text-white font-sans flex flex-col p-4">
+
+    <!-- Header -->
+    <header class="w-full max-w-7xl mx-auto flex justify-between items-center py-4 border-b border-purple-700/50">
+        <div class="flex items-center gap-2">
+            <span class="bg-indigo-500 text-white p-2 rounded-xl text-xl font-bold">🇷🇺</span>
+            <h1 class="text-xl font-bold tracking-wide">Русский Карточки</h1>
+        </div>
+        <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-sm font-medium shadow-lg transition active:scale-95 flex items-center gap-1">
+            <i class="fa-solid fa-plus"></i> Шинэ үг
+        </button>
+    </header>
+
+    <!-- Main Content / Flashcard Area -->
+    <main class="flex-1 w-full max-w-7xl mx-auto my-4">
+        <!-- Stats Bar -->
+        <div class="w-full flex flex-wrap justify-between items-center gap-3 text-xs text-purple-300 mb-2 px-1">
+            <div class="flex gap-4">
+                <span>Үлдэгдэл: <strong id="remainingCount" class="text-white">0</strong></span>
+                <span>Давтах хугацаа болсон: <strong id="dueCount" class="text-emerald-400">0</strong></span>
+            </div>
+            <button id="shuffleCards" type="button" onclick="shuffleCards()" class="bg-purple-700 hover:bg-purple-600 text-white px-3 py-2 rounded-xl font-medium shadow-lg transition active:scale-95 flex items-center gap-2">
+                <i class="fa-solid fa-shuffle"></i> Хөзрүүдийг холих
+            </button>
+        </div>
+        <p class="text-xs text-gray-400 mb-3 px-1">Картын бариулаас чирж хүссэн байрлалд зөөнө үү.</p>
+
+        <!-- Show up to ten review cards at once -->
+        <div id="cardGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-10 hidden">
+            <i class="fa-solid fa-face-smile-beam text-5xl text-purple-400 mb-3"></i>
+            <h3 class="text-lg font-bold">Бүх хөзрийг давтаж дууслаа!</h3>
+            <p class="text-xs text-gray-400 mt-1">Шинэ үг нэмэх эсвэл маргааш дахин шалгаарай.</p>
+        </div>
+    </main>
+
+    <!-- Footer / Navigation -->
+    <footer class="w-full max-w-7xl mx-auto text-center text-xs text-gray-500 py-2 border-t border-purple-900">
+        Орос хэлний ухаалаг санах ойн систем &copy; 2026
+    </footer>
+
+    <!-- Add Word Modal -->
+    <div id="addModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-purple-500/30 w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">Шинэ үг эсвэл өгүүлбэр нэмэх</h3>
+                <button onclick="closeAddModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-purple-300 mb-1">Орос үг / Өгүүлбэр</label>
+                    <input type="text" id="inputRussian" placeholder="Жишээ: Здравствуйте" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-purple-300 mb-1">Монгол утга</label>
+                    <input type="text" id="inputMongolian" placeholder="Жишээ: Сайн байна уу?" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-purple-300 mb-1">Жишээ өгүүлбэр (заавал биш)</label>
+                    <input type="text" id="inputExample" placeholder="Жишээ: Здравствуйте, товарищ!" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-purple-300 mb-1">Төрөл</label>
+                    <select id="inputType" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500">
+                        <option value="Үг">Үг</option>
+                        <option value="Холбоо үг">Холбоо үг</option>
+                        <option value="Өгүүлбэр">Өгүүлбэр</option>
+                    </select>
+                </div>
+                <button onclick="addNewCard()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-semibold transition active:scale-95 mt-2">Хадгалах</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript logic -->
+    <script>
+        // Initial Mock Data if localStorage is empty
+        let cards = JSON.parse(localStorage.getItem('russian_cards')) || [
+            { id: 1, russian: "Здравствуйте", mongolian: "Сайн байна уу?", example: "Здравствуйте, уважаемый коллега!", type: "Үг", nextReviewDate: 0 },
+            { id: 2, russian: "Пожалуйста", mongolian: "Зүгээр / Гуйж байна", example: "Пожалуйста, помогите мне.", type: "Холбоо үг", nextReviewDate: 0 },
+            { id: 3, russian: "Как дела?", mongolian: "Сонин сайхан юу байна?", example: "Привет! Как дела?", type: "Өгүүлбэр", nextReviewDate: 0 },
+            { id: 4, russian: "Спасибо", mongolian: "Баярлалаа", example: "Спасибо за помощь.", type: "Үг", nextReviewDate: 0 },
+            { id: 5, russian: "Извините", mongolian: "Уучлаарай", example: "Извините, пожалуйста.", type: "Үг", nextReviewDate: 0 },
+            { id: 6, russian: "Да", mongolian: "Тийм", example: "Да, я понимаю.", type: "Үг", nextReviewDate: 0 },
+            { id: 7, russian: "Нет", mongolian: "Үгүй", example: "Нет, спасибо.", type: "Үг", nextReviewDate: 0 },
+            { id: 8, russian: "Дом", mongolian: "Байшин, гэр", example: "Это мой дом.", type: "Үг", nextReviewDate: 0 },
+            { id: 9, russian: "Вода", mongolian: "Ус", example: "Стакан воды, пожалуйста.", type: "Үг", nextReviewDate: 0 },
+            { id: 10, russian: "Книга", mongolian: "Ном", example: "Я читаю интересную книгу.", type: "Үг", nextReviewDate: 0 }
+        ];
+
+        let cardOrder = JSON.parse(localStorage.getItem('russian_card_order')) || cards.map(card => card.id);
+        let draggedCardId = null;
+
+        function saveToLocalStorage() {
+            localStorage.setItem('russian_cards', JSON.stringify(cards));
+        }
+
+        function saveCardOrder() {
+            localStorage.setItem('russian_card_order', JSON.stringify(cardOrder));
+        }
+
+        function initApp() {
+            const savedIds = new Set(cardOrder);
+            cardOrder = cardOrder.filter(id => cards.some(card => card.id === id));
+            cards.forEach(card => {
+                if (!savedIds.has(card.id)) cardOrder.push(card.id);
+            });
+            saveCardOrder();
+
+            const cardGrid = document.getElementById('cardGrid');
+            cardGrid.addEventListener('dragover', event => {
+                const targetCard = event.target.closest('[data-card-id]');
+                if (!draggedCardId || !targetCard) return;
+                event.preventDefault();
+                targetCard.classList.add('ring-2', 'ring-indigo-300');
+            });
+            cardGrid.addEventListener('dragleave', event => {
+                const targetCard = event.target.closest('[data-card-id]');
+                if (targetCard && !targetCard.contains(event.relatedTarget)) {
+                    targetCard.classList.remove('ring-2', 'ring-indigo-300');
+                }
+            });
+            cardGrid.addEventListener('drop', event => {
+                const targetCard = event.target.closest('[data-card-id]');
+                if (!draggedCardId || !targetCard) return;
+                event.preventDefault();
+                moveCard(draggedCardId, targetCard.dataset.cardId);
+            });
+            cardGrid.addEventListener('dragend', () => {
+                draggedCardId = null;
+                cardGrid.querySelectorAll('[data-card-id]').forEach(card => {
+                    card.classList.remove('ring-2', 'ring-indigo-300');
+                });
+            });
+            renderCards();
+        }
+
+        function createCardElement(card) {
+            const article = document.createElement('article');
+            article.className = 'min-h-44 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-xl backdrop-blur-xl flex flex-col';
+            article.dataset.cardId = card.id;
+
+            const dragHandle = document.createElement('button');
+            dragHandle.type = 'button';
+            dragHandle.draggable = true;
+            dragHandle.className = 'self-end text-xs text-gray-400 hover:text-white cursor-grab active:cursor-grabbing';
+            dragHandle.setAttribute('aria-label', `${card.russian} картыг зөөх`);
+            dragHandle.title = 'Чирж байрлалыг солино';
+            dragHandle.innerHTML = '<i class="fa-solid fa-grip-vertical" aria-hidden="true"></i> Зөөх';
+            dragHandle.addEventListener('dragstart', event => {
+                draggedCardId = String(card.id);
+                event.dataTransfer.setData('text/plain', draggedCardId);
+                event.dataTransfer.effectAllowed = 'move';
+            });
+            article.appendChild(dragHandle);
+
+            const category = document.createElement('span');
+            category.className = 'self-start bg-purple-500/30 text-purple-300 text-xs px-2.5 py-1 rounded-full uppercase tracking-wider';
+            category.textContent = card.type;
+            article.appendChild(category);
+
+            const revealButton = document.createElement('button');
+            revealButton.type = 'button';
+            revealButton.className = 'flex-1 w-full text-center py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 rounded-xl';
+            revealButton.setAttribute('aria-expanded', 'false');
+
+            const russian = document.createElement('span');
+            russian.className = 'block text-xl font-extrabold text-white break-words';
+            russian.textContent = card.russian;
+            revealButton.appendChild(russian);
+
+            const example = document.createElement('span');
+            example.className = 'block text-xs text-indigo-200 italic mt-2 break-words';
+            example.textContent = card.example ? `"${card.example}"` : '';
+            revealButton.appendChild(example);
+
+            const hint = document.createElement('span');
+            hint.className = 'block text-xs text-gray-400 mt-2';
+            hint.textContent = 'Дарж монгол утгыг харах';
+            revealButton.appendChild(hint);
+            article.appendChild(revealButton);
+
+            const answer = document.createElement('div');
+            answer.className = 'border-t border-white/10 pt-3';
+            answer.hidden = true;
+
+            const translation = document.createElement('p');
+            translation.className = 'text-center text-lg font-bold text-emerald-300 break-words mb-3';
+            translation.textContent = card.mongolian;
+            answer.appendChild(translation);
+
+            const ratings = document.createElement('div');
+            ratings.className = 'grid grid-cols-2 gap-1.5';
+            [
+                { days: 3, label: 'Дахин', style: 'bg-amber-600/80 hover:bg-amber-600' },
+                { days: 14, label: 'Гайгүй', style: 'bg-blue-600/80 hover:bg-blue-600' },
+                { days: 30, label: 'Сайн', style: 'bg-indigo-600/80 hover:bg-indigo-600' },
+                { days: 90, label: 'Төгс', style: 'bg-emerald-600/80 hover:bg-emerald-600' }
+            ].forEach(({ days, label, style }) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `${style} text-white text-xs py-1.5 rounded-lg transition active:scale-95`;
+                button.textContent = `${label} (${days}х)`;
+                button.addEventListener('click', () => reviewCard(card.id, days));
+                ratings.appendChild(button);
+            });
+            answer.appendChild(ratings);
+            article.appendChild(answer);
+
+            revealButton.addEventListener('click', () => {
+                answer.hidden = !answer.hidden;
+                revealButton.setAttribute('aria-expanded', String(!answer.hidden));
+            });
+
+            return article;
+        }
+
+        function moveCard(cardId, targetCardId) {
+            if (cardId === targetCardId) return;
+
+            const sourceIndex = cardOrder.findIndex(id => String(id) === cardId);
+            const targetIndex = cardOrder.findIndex(id => String(id) === targetCardId);
+            if (sourceIndex === -1 || targetIndex === -1) return;
+
+            const [movedCard] = cardOrder.splice(sourceIndex, 1);
+            cardOrder.splice(targetIndex, 0, movedCard);
+            saveCardOrder();
+            renderCards();
+        }
+
+        function shuffleCards() {
+            for (let i = cardOrder.length - 1; i > 0; i--) {
+                const randomIndex = Math.floor(Math.random() * (i + 1));
+                [cardOrder[i], cardOrder[randomIndex]] = [cardOrder[randomIndex], cardOrder[i]];
+            }
+            saveCardOrder();
+            renderCards();
+        }
+
+        function renderCards() {
+            const now = new Date().getTime();
+            // Filter cards that are due for review (nextReviewDate <= current time)
+            const dueCards = cards
+                .filter(card => card.nextReviewDate <= now)
+                .sort((a, b) => cardOrder.indexOf(a.id) - cardOrder.indexOf(b.id));
+
+            document.getElementById('remainingCount').innerText = cards.length;
+            document.getElementById('dueCount').innerText = dueCards.length;
+
+            const cardGrid = document.getElementById('cardGrid');
+            cardGrid.replaceChildren(...dueCards.slice(0, 10).map(createCardElement));
+            document.getElementById('emptyState').classList.toggle('hidden', dueCards.length > 0);
+        }
+
+        function reviewCard(cardId, days) {
+            const now = new Date().getTime();
+            // Calculate future time in milliseconds (Days * 24 * 60 * 60 * 1000)
+            const futureTime = now + (days * 24 * 60 * 60 * 1000);
+
+            // Update card review date
+            const cardIndex = cards.findIndex(c => c.id === cardId);
+            if (cardIndex !== -1) {
+                cards[cardIndex].nextReviewDate = futureTime;
+                saveToLocalStorage();
+            }
+
+            renderCards();
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function addNewCard() {
+            const russian = document.getElementById('inputRussian').value.trim();
+            const mongolian = document.getElementById('inputMongolian').value.trim();
+            const example = document.getElementById('inputExample').value.trim();
+            const type = document.getElementById('inputType').value;
+
+            if (!russian || !mongolian) {
+                alert("Орос үг болон Монгол утгыг заавал бөглөнө үү!");
+                return;
+            }
+
+            const newCard = {
+                id: Date.now(),
+                russian,
+                mongolian,
+                example,
+                type,
+                nextReviewDate: 0 // Available immediately
+            };
+
+            cards.push(newCard);
+            cardOrder.push(newCard.id);
+            saveCardOrder();
+            saveToLocalStorage();
+
+            // Clear inputs
+            document.getElementById('inputRussian').value = "";
+            document.getElementById('inputMongolian').value = "";
+            document.getElementById('inputExample').value = "";
+
+            closeAddModal();
+            renderCards();
+        }
+
+        // Initialize app on load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
